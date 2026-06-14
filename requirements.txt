@@ -1,0 +1,18 @@
+# Orquestração de agentes
+langgraph>=0.2.0
+langchain>=0.3.0
+langchain-anthropic>=0.3.0
+langchain-core>=0.3.0
+
+# Web scraping
+playwright>=1.44.0
+selenium>=4.20.0
+
+# Banco vetorial + embeddings locais (busca semântica)
+chromadb>=0.5.0
+ollama>=0.3.0  # cliente do servidor Ollama (embeddings locais)
+
+# Utilitários
+pydantic>=2.7.0
+python-dotenv>=1.0.0
+rich>=13.7.0

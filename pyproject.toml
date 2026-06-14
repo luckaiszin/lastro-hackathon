@@ -1,0 +1,20 @@
+[project]
+name = "deep-research-imobiliario"
+version = "0.1.0"
+description = "Deep-research de mercado imobiliário por bairro e faixa de preço"
+requires-python = ">=3.10"
+dynamic = ["dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.scripts]
+deep-research = "deep_research.cli:main"
+deep-research-search = "deep_research.search:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
