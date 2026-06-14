@@ -119,6 +119,11 @@ class BaseScraper(ABC):
                         await page.goto(url, timeout=45000, wait_until="domcontentloaded")
                     except Exception:
                         break  # navegação falhou (timeout/bloqueio) -> encerra paginação
+                    # Aborta se o portal redirecionou para outra cidade ou bairro (busca
+                    # ampliada pelo portal quando não há resultados suficientes).
+                    landed = page.url.lower()
+                    if slugify(query.cidade) not in landed or slugify(query.bairro) not in landed:
+                        break
                     # pequeno atraso aleatório para reduzir bloqueios
                     await asyncio.sleep(random.uniform(1.5, 3.0))
                     items = await self.parse(page, query)

@@ -8,6 +8,7 @@ from typing import List, Tuple
 from rich.console import Console
 
 from ..models import Listing
+from ..scrapers.base import slugify
 from ..state import GraphState
 
 console = Console(stderr=True)
@@ -76,6 +77,14 @@ def normalize_node(state: GraphState) -> GraphState:
         if listing.preco is None:
             descartados += 1
             continue
+
+        # Para o OLX, a URL do anúncio inclui cidade e bairro — descarta listings
+        # de outras localidades que escaparam de um redirecionamento do portal.
+        if listing.portal == "olx":
+            url_lower = listing.url.lower()
+            if slugify(query.cidade) not in url_lower or slugify(query.bairro) not in url_lower:
+                descartados += 1
+                continue
 
         listing.compute_preco_m2()
 
