@@ -7,7 +7,7 @@ Ferramenta de **deep-research** que pesquisa o mercado imobiliário de um **bair
 - **LangGraph / LangChain** — orquestração dos agentes (grafo de estado)
 - **Playwright** (Selenium como fallback) — scraping de portais JS-pesados
 - **Claude** (`langchain-anthropic`) — análise e síntese do relatório
-- **ChromaDB** (opcional) — busca semântica nas descrições
+- **ChromaDB**  — busca semântica no histórico de descrições
 
 ## Arquitetura (grafo)
 
