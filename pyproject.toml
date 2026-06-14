@@ -14,6 +14,7 @@ where = ["src"]
 [project.scripts]
 deep-research = "deep_research.cli:main"
 deep-research-search = "deep_research.search:main"
+deep-research-mcp = "deep_research.mcp_server:main"
 
 [build-system]
 requires = ["setuptools>=68"]

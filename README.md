@@ -59,6 +59,44 @@ Principais flags: `--operacao venda|aluguel`, `--tipo apartamento|casa|ambos`,
 
 Rode a partir da pasta `src/`, ou instale em modo editável (`pip install -e .`).
 
+## Servidor MCP (Claude Desktop / qualquer cliente MCP)
+
+O pacote inclui um **servidor MCP** que expõe as duas funcionalidades principais como ferramentas nativas para o Claude Desktop (ou qualquer cliente compatível com MCP).
+
+### Ferramentas expostas
+
+| Ferramenta | Tipo | O que faz |
+|------------|------|-----------|
+| `pesquisar_mercado` | async | Pipeline completo (scraping + análise + relatório). Mesmos parâmetros da CLI; aceita `mock=true` para demo sem rede. |
+| `buscar_semantico` | sync | Busca no histórico Chroma em linguagem natural, sem scraping. Infere filtros do texto automaticamente. |
+
+### Registro no Claude Desktop
+
+Adicione ao `claude_desktop_config.json` (substitua o caminho do Python pelo seu ambiente):
+
+```json
+{
+  "mcpServers": {
+    "imobiliario": {
+      "command": "/caminho/para/python",
+      "args": ["-m", "deep_research.mcp_server"],
+      "cwd": "/caminho/para/lastro_hackathon/src",
+      "env": {
+        "PYTHONPATH": "/caminho/para/lastro_hackathon/src"
+      }
+    }
+  }
+}
+```
+
+O servidor também pode ser iniciado diretamente via entrypoint instalado:
+
+```bash
+deep-research-mcp   # equivalente a python -m deep_research.mcp_server
+```
+
+---
+
 ## Documentação
 
 - [`DOCUMENTACAO.md`](DOCUMENTACAO.md) — fluxo de dados e o papel de **cada script**.

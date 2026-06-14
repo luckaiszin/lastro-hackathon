@@ -9,7 +9,7 @@ Documento técnico do projeto: visão geral, fluxo de dados e o papel de **cada 
 A ferramenta recebe um **recorte de mercado** (cidade, bairro, faixa de preço, tipo) e produz um **relatório de mercado imobiliário** em Markdown. O trabalho é organizado como um **grafo de estado** (LangGraph): cada etapa é um "nó" que lê e escreve num estado compartilhado.
 
 ```
-Entrada (CLI / Streamlit)
+Entrada (CLI / Streamlit / MCP)
         │  Query
         ▼
 ┌──────────────────────────────────────────────────────────────┐
@@ -17,7 +17,7 @@ Entrada (CLI / Streamlit)
 └──────────────────────────────────────────────────────────────┘
         │  report (Markdown)
         ▼
-     Terminal / UI
+  Terminal / UI / Claude Desktop
 ```
 
 **Princípios de design:**
@@ -48,8 +48,9 @@ lastro_hackathon/
     ├── graph.py               # monta e compila o grafo
     ├── segments.py            # agrupa imóveis por tipo (casa/apartamento)
     ├── store.py               # histórico vetorial (Chroma + embeddings locais)
-    ├── cli.py                 # entrypoint: pipeline de busca
-    ├── search.py              # entrypoint: busca semântica no histórico
+    ├── cli.py                 # entrypoint: pipeline de busca (CLI)
+    ├── search.py              # entrypoint: busca semântica no histórico (CLI)
+    ├── mcp_server.py          # entrypoint: servidor MCP (Claude Desktop)
     ├── scrapers/
     │   ├── __init__.py        # registra os scrapers
     │   ├── base.py            # infraestrutura Playwright + helpers + registro
@@ -188,12 +189,34 @@ Entrypoint separado (`python -m deep_research.search`) que **consulta o históri
 ### `app.py` — Streamlit (opcional)
 UI web que reaproveita **o mesmo `run()`** da CLI. Formulário com cidade/bairro/faixa/tipo + checkbox "modo demo", e renderiza o relatório com `st.markdown`. Ajusta o `sys.path` para achar o pacote em `src/`.
 
+### `mcp_server.py` — Servidor MCP
+Expõe as funcionalidades do pacote como **ferramentas MCP** para o Claude Desktop (ou qualquer cliente MCP compatível). Usa `FastMCP` e declara duas ferramentas:
+
+- **`pesquisar_mercado`** (`async`) — recebe os mesmos parâmetros da `Query` (cidade, bairro, operação, tipo, faixas de preço, quartos, zona, páginas) mais `mock: bool`. Monta a `Query`, invoca `build_graph().ainvoke(...)` e devolve o relatório Markdown pronto.
+- **`buscar_semantico`** (`sync`) — recebe `texto` em linguagem natural e filtros opcionais explícitos (operação, tipo, cidade, bairro, preço min/max). Chama `_extract_filters` para inferir filtros não fornecidos, depois `store.search(...)`, e retorna uma tabela Markdown com similaridade cossenoidal e links. Retorna mensagem informativa se o histórico estiver vazio.
+
+O servidor roda sobre `stdio` (`mcp.run(transport="stdio")`), que é o transporte padrão para integração com Claude Desktop. O entrypoint instalado é `deep-research-mcp` (= `mcp_server:main`).
+
+**Registro no Claude Desktop** — adicionar em `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "imobiliario": {
+      "command": "/caminho/para/python",
+      "args": ["-m", "deep_research.mcp_server"],
+      "cwd": "/caminho/para/lastro_hackathon/src",
+      "env": { "PYTHONPATH": "/caminho/para/lastro_hackathon/src" }
+    }
+  }
+}
+```
+
 ---
 
 ## 7. Configuração e build
 
 - **`requirements.txt`** — dependências (LangGraph/LangChain, Playwright, Selenium, ChromaDB, Pydantic, dotenv, rich).
-- **`pyproject.toml`** — metadados do pacote; define o comando `deep-research` (= `cli:main`) e o layout `src/`. Permite `pip install -e .`.
+- **`pyproject.toml`** — metadados do pacote; define três entrypoints (`deep-research` = `cli:main`, `deep-research-search` = `search:main`, `deep-research-mcp` = `mcp_server:main`) e o layout `src/`. Permite `pip install -e .`.
 - **`.env.example`** — modelo das variáveis de ambiente; copie para `.env` e preencha a API key.
 - **`.gitignore`** — ignora `.env`, `__pycache__`, venvs, dados do Chroma.
 
